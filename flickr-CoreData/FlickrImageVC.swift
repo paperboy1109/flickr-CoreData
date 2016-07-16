@@ -21,29 +21,64 @@ class FlickrImageVC: UIViewController {
     @IBOutlet var flickrCollectionView: UICollectionView!
     
     // MARK: - Lifecycle
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         // Do any additional setup after loading the view.
         
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
+        
+        /* Display some images */
+        
+        // Set method parameters
+        let methodParameters: [String: String!] = [
+            FlickrClient.Constants.FlickrParameterKeys.Method: FlickrClient.Constants.FlickrParameterValues.SearchMethod,
+            FlickrClient.Constants.FlickrParameterKeys.APIKey: FlickrClient.Constants.FlickrParameterValues.APIKey,
+            FlickrClient.Constants.FlickrParameterKeys.SafeSearch: FlickrClient.Constants.FlickrParameterValues.UseSafeSearch,
+            FlickrClient.Constants.FlickrParameterKeys.Extras: FlickrClient.Constants.FlickrParameterValues.MediumURL,
+            FlickrClient.Constants.FlickrParameterKeys.Format: FlickrClient.Constants.FlickrParameterValues.ResponseFormat,
+            FlickrClient.Constants.FlickrParameterKeys.NoJSONCallback: FlickrClient.Constants.FlickrParameterValues.DisableJSONCallback,
+            FlickrClient.Constants.FlickrParameterKeys.Text: "Oxford, England"
+        ]
+        
+        FlickrClient.sharedInstance().returnImageArrayFromFlickrBySearch(methodParameters) { (imageDataArray, error, errorDesc) in
+            
+            if !error {
+                if let imageDictionaries = imageDataArray {
+                    print(imageDictionaries.count)
+                    
+                    if imageDictionaries.count >= 4 {
+                        
+                        var indexArray = [Int]()
+                        
+                        for _ in 1...4 {
+                            indexArray.append(Int(arc4random_uniform(UInt32(imageDictionaries.count))))
+                        }
+                        
+                        print (indexArray)
+                    }
+                }
+            }
+        }
     }
-
-
     
-
+    
+    
+    
     /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+     // MARK: - Navigation
+     
+     // In a storyboard-based application, you will often want to do a little preparation before navigation
+     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+     // Get the new view controller using segue.destinationViewController.
+     // Pass the selected object to the new view controller.
+     }
+     */
+    
+    // MARK: - Helpers
+    
 }
 
 

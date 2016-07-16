@@ -19,6 +19,7 @@
 		4E275F141D3ADE99005993FD /* FlickrClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F131D3ADE99005993FD /* FlickrClient.swift */; };
 		4E275F161D3ADEFA005993FD /* FlickrConvenience.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F151D3ADEFA005993FD /* FlickrConvenience.swift */; };
 		4E275F181D3AE362005993FD /* FlickrConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F171D3AE362005993FD /* FlickrConstants.swift */; };
+		4E275F1B1D3AE748005993FD /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F191D3AE748005993FD /* Model.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +37,7 @@
 		4E275F131D3ADE99005993FD /* FlickrClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClient.swift; sourceTree = "<group>"; };
 		4E275F151D3ADEFA005993FD /* FlickrConvenience.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrConvenience.swift; sourceTree = "<group>"; };
 		4E275F171D3AE362005993FD /* FlickrConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrConstants.swift; sourceTree = "<group>"; };
+		4E275F1A1D3AE748005993FD /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +78,7 @@
 				4E275F011D3AC8DD005993FD /* Assets */,
 				4E275EEF1D3AC685005993FD /* AppDelegate.swift */,
 				4E275EFB1D3AC685005993FD /* Info.plist */,
+				4E275F191D3AE748005993FD /* Model.xcdatamodeld */,
 			);
 			path = "flickr-CoreData";
 			sourceTree = "<group>";
@@ -228,6 +231,7 @@
 				4E275F141D3ADE99005993FD /* FlickrClient.swift in Sources */,
 				4E275F071D3ACD7F005993FD /* FlickrCollectionViewCell.swift in Sources */,
 				4E275EF01D3AC685005993FD /* AppDelegate.swift in Sources */,
+				4E275F1B1D3AE748005993FD /* Model.xcdatamodeld in Sources */,
 				4E275F101D3ADE1A005993FD /* GCDHelper.swift in Sources */,
 				4E275F0A1D3AD0AC005993FD /* CoreDataStack.swift in Sources */,
 			);
@@ -381,6 +385,19 @@
 			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		4E275F191D3AE748005993FD /* Model.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				4E275F1A1D3AE748005993FD /* Model.xcdatamodel */,
+			);
+			currentVersion = 4E275F1A1D3AE748005993FD /* Model.xcdatamodel */;
+			path = Model.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 4E275EE41D3AC684005993FD /* Project object */;
 }
