@@ -13,7 +13,7 @@ import CoreData
 class CoreDataStack {
     
     // TODO: Create entities in the xcdatamodel
-    let model = "?"
+    let model = "Model"
     
     // STEP 1 of 4: set the application documents directory
     

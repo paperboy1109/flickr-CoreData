@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 private let reuseIdentifier = "flickrImageCell"
 
@@ -30,6 +31,7 @@ class FlickrImageVC: UIViewController {
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
         
+        
         /* Display some images */
         
         // Set method parameters
@@ -46,6 +48,7 @@ class FlickrImageVC: UIViewController {
         FlickrClient.sharedInstance().returnImageArrayFromFlickrBySearch(methodParameters) { (imageDataArray, error, errorDesc) in
             
             if !error {
+                
                 if let imageDictionaries = imageDataArray {
                     print(imageDictionaries.count)
                     
@@ -58,13 +61,46 @@ class FlickrImageVC: UIViewController {
                         }
                         
                         print (indexArray)
+                        
+                        /* Get some images to save to the data store */
+                        let singleRandomPhotoDictionary1 = imageDictionaries[indexArray[0]] as [String:AnyObject]
+                        
+                        /* GUARD: Does our photo have a key for 'url_m'? */
+                        guard let imageUrlString = singleRandomPhotoDictionary1[FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                            print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(singleRandomPhotoDictionary1)")
+                            return
+                        }
+                        
+                        let imageURL = NSURL(string: imageUrlString)
+                        
+                        print("About to create newImageData")
+                        if let newImageData = NSData(contentsOfURL: imageURL!) {
+                            
+                            print("About to persist image data")
+                            // TODO: Persist the image data
+                            let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+                            
+                            touristPicture.image = newImageData
+                            self.coreDataStack.saveContext()
+                        }
+
                     }
                 }
             }
         }
+        
+        
+        /* Persist images (sample data) */
+        
+        /* Add the Udacity logo to the data store (this only needs to be done once */
+        /*
+        let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: coreDataStack.managedObjectContext) as! Photo
+        touristPicture.image = UIImagePNGRepresentation(UIImage(named: "udacity-logo.png")!)
+        coreDataStack.saveContext() */
+ 
+        
+        
     }
-    
-    
     
     
     /*
