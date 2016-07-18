@@ -15,6 +15,12 @@ class FlickrImageVC: UIViewController {
     
     // MARK: - Properties
     var coreDataStack = CoreDataStack()
+    var managedObjectContext: NSManagedObjectContext!
+    var request: NSFetchRequest!
+    
+    var imageService: ImageService!
+    
+    var travelPhotos: [Photo] = []
     
     
     // MARK: - Outlets
@@ -30,6 +36,11 @@ class FlickrImageVC: UIViewController {
         
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
+        
+        managedObjectContext = coreDataStack.managedObjectContext
+        imageService = ImageService(managedObjectContext: managedObjectContext)
+        
+        imageService.loadData()
         
         
         /* Display some images */
@@ -71,18 +82,21 @@ class FlickrImageVC: UIViewController {
                             return
                         }
                         
-                        let imageURL = NSURL(string: imageUrlString)
+                        print(imageUrlString)
+                        // let imageURL = NSURL(string: imageUrlString)
                         
+                        // Persist the image data for an individual image
+                        /*
                         print("About to create newImageData")
                         if let newImageData = NSData(contentsOfURL: imageURL!) {
                             
                             print("About to persist image data")
-                            // TODO: Persist the image data
+                            
                             let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
                             
                             touristPicture.image = newImageData
                             self.coreDataStack.saveContext()
-                        }
+                        } */
 
                     }
                 }
@@ -90,14 +104,20 @@ class FlickrImageVC: UIViewController {
         }
         
         
-        /* Persist images (sample data) */
         
+        /* Persist images (sample data) */
         /* Add the Udacity logo to the data store (this only needs to be done once */
         /*
         let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: coreDataStack.managedObjectContext) as! Photo
         touristPicture.image = UIImagePNGRepresentation(UIImage(named: "udacity-logo.png")!)
         coreDataStack.saveContext() */
  
+        
+        
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
         
         
     }
@@ -134,7 +154,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        
+        /* Hard-code the cell size */
         return CGSizeMake(105, 105)
     }
     
@@ -148,6 +168,8 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         cell.layer.borderWidth = 0.8
         cell.layer.cornerRadius = 5
         cell.layer.borderColor = UIColor.grayColor().CGColor
+        
+        // let cellPhoto =
         
         
         return cell

@@ -22,6 +22,7 @@
 		4E275F1B1D3AE748005993FD /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F191D3AE748005993FD /* Model.xcdatamodeld */; };
 		4E275F1E1D3AEC72005993FD /* Photo+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F1C1D3AEC72005993FD /* Photo+CoreDataProperties.swift */; };
 		4E275F1F1D3AEC72005993FD /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F1D1D3AEC72005993FD /* Photo.swift */; };
+		4E275F211D3AF7AC005993FD /* ImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E275F201D3AF7AC005993FD /* ImageService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		4E275F1A1D3AE748005993FD /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		4E275F1C1D3AEC72005993FD /* Photo+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Photo+CoreDataProperties.swift"; path = "../Photo+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		4E275F1D1D3AEC72005993FD /* Photo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Photo.swift; path = ../Photo.swift; sourceTree = "<group>"; };
+		4E275F201D3AF7AC005993FD /* ImageService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,11 +117,11 @@
 		4E275F081D3AD073005993FD /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				4E275F091D3AD0AC005993FD /* CoreDataStack.swift */,
 				4E275F191D3AE748005993FD /* Model.xcdatamodeld */,
 				4E275F1C1D3AEC72005993FD /* Photo+CoreDataProperties.swift */,
 				4E275F1D1D3AEC72005993FD /* Photo.swift */,
 				4E275F111D3ADE65005993FD /* Clients */,
-				4E275F091D3AD0AC005993FD /* CoreDataStack.swift */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -128,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				4E275F0C1D3AD199005993FD /* FlickrImageService.swift */,
+				4E275F201D3AF7AC005993FD /* ImageService.swift */,
 			);
 			name = Services;
 			sourceTree = "<group>";
@@ -238,6 +241,7 @@
 				4E275F141D3ADE99005993FD /* FlickrClient.swift in Sources */,
 				4E275F071D3ACD7F005993FD /* FlickrCollectionViewCell.swift in Sources */,
 				4E275EF01D3AC685005993FD /* AppDelegate.swift in Sources */,
+				4E275F211D3AF7AC005993FD /* ImageService.swift in Sources */,
 				4E275F1B1D3AE748005993FD /* Model.xcdatamodeld in Sources */,
 				4E275F1E1D3AEC72005993FD /* Photo+CoreDataProperties.swift in Sources */,
 				4E275F101D3ADE1A005993FD /* GCDHelper.swift in Sources */,

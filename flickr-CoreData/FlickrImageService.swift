@@ -13,7 +13,7 @@ public class FlickrImageService {
     
     func downloadSampleData() {
         
-        let coreDataStack = CoreDataStack()
+        // let coreDataStack = CoreDataStack()
         
         // TODO: Get some sample images from flickr
         
