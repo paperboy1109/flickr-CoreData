@@ -24,21 +24,38 @@ public class ImageService {
         
         print("\n\n\nloadData called")
         
-        // let coreDataStack = CoreDataStack()
-        
         // TODO: Access images in the data store
         let request = NSFetchRequest(entityName: "Photo")
+        
         let results: [Photo]
         
         do {
             results = try managedObjectContext.executeFetchRequest(request) as! [Photo]
         }
         catch {
-            fatalError("Error getting car inventory")
+            fatalError("Error getting photos")
         }
         
         print("(loadData) Here is the number of Photo entities fetched from the data store: ")
         print(results.count)
+        
+    }
+    
+    func getPhotoEntities() -> [Photo] {
+        
+        let request = NSFetchRequest(entityName: "Photo")
+        
+        let results: [Photo]
+        
+        do {
+            results = try managedObjectContext.executeFetchRequest(request) as! [Photo]
+        }
+        catch {
+            fatalError("Error getting photos")
+        }
+        
+        return results
+        
         
     }
     
