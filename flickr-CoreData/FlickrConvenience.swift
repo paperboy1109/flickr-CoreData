@@ -39,10 +39,11 @@ extension FlickrClient {
         }
     }
     
-    
-    func getUIImagesFromFlickrData(max: Int, completionHandlerForGetUIImagesFromFlickrData: (images: UIImage?, error: Bool, errorDesc: String?) -> Void) {
+    // func getUIImagesFromFlickrData(maxPhotos: Int, completionHandlerForGetUIImagesFromFlickrData: (images: UIImage?, error: Bool, errorDesc: String?) -> Void) {
+    func getUIImagesFromFlickrData(maxPhotos: Int, completionHandlerForGetUIImagesFromFlickrData: (images: [UIImage?], error: Bool, errorDesc: String?) -> Void) {
         
-        var flickrImages: UIImage? = nil
+        // var flickrImages: UIImage? = nil
+        var flickrImageArray: [UIImage?] = [nil]
         
         FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
             
@@ -55,8 +56,32 @@ extension FlickrClient {
                     
                     if imageDictionaries.count > 0 {
                         
-                        let singleRandomPhotoDictionary1 = imageDictionaries[0] as [String:AnyObject]
+                        // let singleRandomPhotoDictionary1 = imageDictionaries[0] as [String:AnyObject]
                         
+                        /* Pick photos randomly from those available and append them to the array */
+                        let randomPhotoIndices = self.uniquePhotoIndices(maxPhotos, minIndex: 0, maxIndex: UInt32(imageDictionaries.count))
+                        
+                        flickrImageArray = []
+                        
+                        for index in 0...(randomPhotoIndices.count-1) {
+                            print("hello \(index)")
+                            
+                            guard let imageUrlString = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                                print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(imageDictionaries[randomPhotoIndices[index]])")
+                                return
+                            }
+                            
+                            let imageURL = NSURL(string: imageUrlString)
+                            
+                            if let newImageData = NSData(contentsOfURL: imageURL!) {
+                                flickrImageArray.append(UIImage(data: newImageData)!)
+                            }
+                        }
+                        
+                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImageArray, error: false, errorDesc: nil)
+                        
+                        // Return a single image
+                        /*
                         /* GUARD: Does our photo have a key for 'url_m'? */
                         guard let imageUrlString = singleRandomPhotoDictionary1[FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
                             print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(singleRandomPhotoDictionary1)")
@@ -75,11 +100,11 @@ extension FlickrClient {
                             return
                         }
                         
-                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Unable to get NSData from a flickr image URL")
+                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Unable to get NSData from a flickr image URL") */
                         
                     } else {
                         print("No images were returned")
-                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "No images were returned")
+                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImageArray, error: true, errorDesc: "No images were returned")
                     }
                 }
             }
@@ -297,6 +322,18 @@ extension FlickrClient {
          let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: coreDataStack.managedObjectContext) as! Photo
          touristPicture.image = UIImagePNGRepresentation(UIImage(named: "udacity-logo.png")!)
          coreDataStack.saveContext() */
+    }
+    
+    
+    func uniquePhotoIndices(totalPhotos: Int, minIndex: Int, maxIndex: UInt32) -> [Int] {
+        
+        var uniqueNumbers = Set<Int>()
+        
+        while uniqueNumbers.count < totalPhotos {
+            uniqueNumbers.insert(Int(arc4random_uniform(maxIndex + 1)) + minIndex)
+        }
+        
+        return Array(uniqueNumbers)
     }
     
     

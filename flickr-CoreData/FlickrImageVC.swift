@@ -22,7 +22,7 @@ class FlickrImageVC: UIViewController {
     
     var travelPhotos: [Photo] = []
     
-    var flickrPhotos: [UIImage] = []
+    var flickrPhotos: [UIImage?] = []
     
     
     // MARK: - Outlets
@@ -50,7 +50,9 @@ class FlickrImageVC: UIViewController {
         FlickrClient.sharedInstance().getUIImagesFromFlickrData(5) { (images, error, errorDesc) in
             
             if !error {
-                self.flickrPhotos.append(images!)
+                // self.flickrPhotos.append(images!)
+                print("\n Here is images.count: \(images.count)")                
+                self.flickrPhotos = images
                 performUIUpdatesOnMain() {
                     self.flickrCollectionView.reloadData()
                 }
