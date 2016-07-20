@@ -15,6 +15,81 @@ extension FlickrClient {
     
     // MARK: - Helpers
     
+    func searchFlickrForImages(completionHandlerForSearchFlickrForImages: (imageDataArray: [[String:AnyObject]]?, error: Bool, errorDesc: String?) -> Void) {
+        
+        // Set method parameters
+        let methodParameters: [String: String!] = [
+            FlickrClient.Constants.FlickrParameterKeys.Method: FlickrClient.Constants.FlickrParameterValues.SearchMethod,
+            FlickrClient.Constants.FlickrParameterKeys.APIKey: FlickrClient.Constants.FlickrParameterValues.APIKey,
+            FlickrClient.Constants.FlickrParameterKeys.SafeSearch: FlickrClient.Constants.FlickrParameterValues.UseSafeSearch,
+            FlickrClient.Constants.FlickrParameterKeys.Extras: FlickrClient.Constants.FlickrParameterValues.MediumURL,
+            FlickrClient.Constants.FlickrParameterKeys.Format: FlickrClient.Constants.FlickrParameterValues.ResponseFormat,
+            FlickrClient.Constants.FlickrParameterKeys.NoJSONCallback: FlickrClient.Constants.FlickrParameterValues.DisableJSONCallback,
+            FlickrClient.Constants.FlickrParameterKeys.Text: "London, England"
+        ]
+        
+        FlickrClient.sharedInstance().returnImageArrayFromFlickr(methodParameters) { (imageDataArray, error, errorDesc) in
+            
+            if error == false {
+                completionHandlerForSearchFlickrForImages(imageDataArray: imageDataArray, error: false, errorDesc: nil)
+            } else {
+                completionHandlerForSearchFlickrForImages(imageDataArray: nil, error: true, errorDesc: errorDesc)
+            }
+        }
+    }
+    
+    
+    func getUIImagesFromFlickrData(max: Int, completionHandlerForGetUIImagesFromFlickrData: (images: UIImage?, error: Bool, errorDesc: String?) -> Void) {
+        
+        var flickrImages: UIImage? = nil
+        
+        FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
+            
+            if !error {
+                
+                if let imageDictionaries = imageDataArray {
+                    
+                    print("\nHere is the number of image dictionaries: ")
+                    print(imageDictionaries.count)
+                    
+                    if imageDictionaries.count > 0 {
+                        
+                        let singleRandomPhotoDictionary1 = imageDictionaries[0] as [String:AnyObject]
+                        
+                        /* GUARD: Does our photo have a key for 'url_m'? */
+                        guard let imageUrlString = singleRandomPhotoDictionary1[FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                            print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(singleRandomPhotoDictionary1)")
+                            completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'")
+                            return
+                        }
+                        
+                        let imageURL = NSURL(string: imageUrlString)
+                        
+                        if let newImageData = NSData(contentsOfURL: imageURL!) {
+                            
+                            flickrImages = UIImage(data: newImageData)!
+                            
+                            completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: false, errorDesc: nil)
+                            
+                            return
+                        }
+                        
+                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Unable to get NSData from a flickr image URL")
+                        
+                    } else {
+                        print("No images were returned")
+                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "No images were returned")
+                    }
+                }
+            }
+        }
+        
+    }
+    
+    
+    
+    
+    
     func saveRandomImage() {
         
         /* Display some images */
@@ -30,7 +105,7 @@ extension FlickrClient {
             FlickrClient.Constants.FlickrParameterKeys.Text: "Oxford, England"
         ]
         
-        FlickrClient.sharedInstance().returnImageArrayFromFlickrBySearch(methodParameters) { (imageDataArray, error, errorDesc) in
+        FlickrClient.sharedInstance().returnImageArrayFromFlickr(methodParameters) { (imageDataArray, error, errorDesc) in
             
             if !error {
                 
@@ -57,10 +132,12 @@ extension FlickrClient {
                         }
                         
                         print(imageUrlString)
-                        // let imageURL = NSURL(string: imageUrlString)
                         
-                        // Persist the image data for an individual image
                         /*
+                         let imageURL = NSURL(string: imageUrlString)
+                         
+                         // Persist the image data for an individual image
+                         
                          print("About to create newImageData")
                          if let newImageData = NSData(contentsOfURL: imageURL!) {
                          
@@ -84,7 +161,7 @@ extension FlickrClient {
         /*
          let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: coreDataStack.managedObjectContext) as! Photo
          touristPicture.image = UIImagePNGRepresentation(UIImage(named: "udacity-logo.png")!)
-         coreDataStack.saveContext() */        
+         coreDataStack.saveContext() */
     }
     
     func searchByName() {
@@ -141,6 +218,84 @@ extension FlickrClient {
             /* Return the default value */
             return "-180, -90, 180, 90"
         }
+    }
+    
+    
+    
+    
+    
+    
+    func saveRandomImage_UPDATED() {
+        
+        /* Display some images */
+        
+        // Set method parameters
+        let methodParameters: [String: String!] = [
+            FlickrClient.Constants.FlickrParameterKeys.Method: FlickrClient.Constants.FlickrParameterValues.SearchMethod,
+            FlickrClient.Constants.FlickrParameterKeys.APIKey: FlickrClient.Constants.FlickrParameterValues.APIKey,
+            FlickrClient.Constants.FlickrParameterKeys.SafeSearch: FlickrClient.Constants.FlickrParameterValues.UseSafeSearch,
+            FlickrClient.Constants.FlickrParameterKeys.Extras: FlickrClient.Constants.FlickrParameterValues.MediumURL,
+            FlickrClient.Constants.FlickrParameterKeys.Format: FlickrClient.Constants.FlickrParameterValues.ResponseFormat,
+            FlickrClient.Constants.FlickrParameterKeys.NoJSONCallback: FlickrClient.Constants.FlickrParameterValues.DisableJSONCallback,
+            FlickrClient.Constants.FlickrParameterKeys.Text: "Oxford, England"
+        ]
+        
+        FlickrClient.sharedInstance().returnImageArrayFromFlickr(methodParameters) { (imageDataArray, error, errorDesc) in
+            
+            if !error {
+                
+                if let imageDictionaries = imageDataArray {
+                    print(imageDictionaries.count)
+                    
+                    if imageDictionaries.count >= 4 {
+                        
+                        var indexArray = [Int]()
+                        
+                        for _ in 1...4 {
+                            indexArray.append(Int(arc4random_uniform(UInt32(imageDictionaries.count))))
+                        }
+                        
+                        print (indexArray)
+                        
+                        /* Get some images to save to the data store */
+                        let singleRandomPhotoDictionary1 = imageDictionaries[indexArray[0]] as [String:AnyObject]
+                        
+                        /* GUARD: Does our photo have a key for 'url_m'? */
+                        guard let imageUrlString = singleRandomPhotoDictionary1[FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                            print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(singleRandomPhotoDictionary1)")
+                            return
+                        }
+                        
+                        print(imageUrlString)
+                        //let imageURL = NSURL(string: imageUrlString)
+                        
+                        // Persist the image data for an individual image
+                        
+                        /*
+                         print("About to create newImageData")
+                         if let newImageData = NSData(contentsOfURL: imageURL!) {
+                         
+                         print("About to persist image data")
+                         
+                         let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+                         
+                         touristPicture.image = newImageData
+                         self.coreDataStack.saveContext()
+                         } */
+                        
+                    }
+                }
+            }
+        }
+        
+        
+        
+        /* Persist images (sample data) */
+        /* Add the Udacity logo to the data store (this only needs to be done once */
+        /*
+         let touristPicture = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: coreDataStack.managedObjectContext) as! Photo
+         touristPicture.image = UIImagePNGRepresentation(UIImage(named: "udacity-logo.png")!)
+         coreDataStack.saveContext() */
     }
     
     

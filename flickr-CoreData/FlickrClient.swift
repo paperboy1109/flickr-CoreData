@@ -16,7 +16,7 @@ class FlickrClient: NSObject {
     
     // MARK: - Return images based on search
     
-    func returnImageFromFlickrBySearch(methodParameters: [String:AnyObject], pageNumber: Int, completionHandlerForDisplayImageFromFlickrBySearch: (imageData: NSData?, error: Bool, errorDesc: String?) -> Void) {
+    func returnImageFromFlickrBySearch(methodParameters: [String:AnyObject], pageNumber: Int, completionHandlerForReturnImageFromFlickrBySearch: (imageData: NSData?, error: Bool, errorDesc: String?) -> Void) {
         
         // What parameters were received?
         // print(flickrURLFromParameters(methodParameters))
@@ -36,28 +36,28 @@ class FlickrClient: NSObject {
             // TODO: displayError is deprecated!
             func displayError(error: String) {
                 print(error)
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: error)
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: error)
                 
             }
             
             /* GUARD: Was there an error? */
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "There was an error with your request: \(error)")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "There was an error with your request: \(error)")
                 return
             }
             
             /* GUARD: Did we get a successful 2XX response? */
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 // displayError("Your request returned a status code other than 2xx!")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Your request returned a status code other than 2xx!")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Your request returned a status code other than 2xx!")
                 return
             }
             
             /* GUARD: Was there any data returned? */
             guard let data = data else {
                 //displayError("No data was returned by the request!")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "No data was returned by the request!")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "No data was returned by the request!")
                 return
             }
             
@@ -72,7 +72,7 @@ class FlickrClient: NSObject {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             } catch {
                 // displayError("Could not parse the data as JSON: '\(data)'")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Could not parse the data as JSON: '\(data)'")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Could not parse the data as JSON: '\(data)'")
                 return
             }
             
@@ -86,14 +86,14 @@ class FlickrClient: NSObject {
             guard let photosDictionary = parsedResult[Constants.FlickrResponseKeys.Photos] as? [String:AnyObject],
                 photoArray = photosDictionary[Constants.FlickrResponseKeys.Photo] as? [[String:AnyObject]] else {
                     //displayError("Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
-                    completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
+                    completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
                     return
             }
             
-            // Prevent crash if no photos are returned
+            // Defensive coding in case no photos are returned
             if photoArray.count == 0 {
                 // displayError("No photos were returned")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "No photos were returned")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "No photos were returned")
                 return
             }
             
@@ -113,16 +113,16 @@ class FlickrClient: NSObject {
             /* GUARD: Does our photo have a key for 'url_m'? */
             guard let imageUrlString = singleRandomPhotoDictionary[Constants.FlickrResponseKeys.MediumURL] as? String else {
                 // displayError("Cannot find key '\(Constants.FlickrResponseKeys.MediumURL)' in \(singleRandomPhotoDictionary)")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Cannot find key '\(Constants.FlickrResponseKeys.MediumURL)' in \(singleRandomPhotoDictionary)")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Cannot find key '\(Constants.FlickrResponseKeys.MediumURL)' in \(singleRandomPhotoDictionary)")
                 return
             }
             
             // if an image exists at the url, pass the image as NSData to the completion handler
             let imageURL = NSURL(string: imageUrlString)
             if let newImageData = NSData(contentsOfURL: imageURL!) {
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: newImageData, error: false, errorDesc: nil)
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: newImageData, error: false, errorDesc: nil)
             } else {
-                completionHandlerForDisplayImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Image does not exist at \(imageURL)")
+                completionHandlerForReturnImageFromFlickrBySearch(imageData: nil, error: true, errorDesc: "Image does not exist at \(imageURL)")
             }
         }
         
@@ -130,7 +130,7 @@ class FlickrClient: NSObject {
     }
     
     
-    func returnImageArrayFromFlickrBySearch(methodParameters: [String:AnyObject], completionHandlerForDisplayImageFromFlickrBySearch: (imageDataArray: [[String:AnyObject]]?, error: Bool, errorDesc: String?) -> Void) {
+    func returnImageArrayFromFlickr(methodParameters: [String:AnyObject], completionHandlerForReturnImageArrayFromFlickrBySearch: (imageDataArray: [[String:AnyObject]]?, error: Bool, errorDesc: String?) -> Void) {
         
         // What parameters were received?
         // print(flickrURLFromParameters(methodParameters))
@@ -143,34 +143,34 @@ class FlickrClient: NSObject {
             // TODO: displayError is deprecated!
             func displayError(error: String) {
                 print(error)
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: error)
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: error)
                 
             }
             
             /* GUARD: Was there an error? */
             guard (error == nil) else {
                 print("There was an error with your request: \(error)")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "There was an error with your request: \(error)")
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "There was an error with your request: \(error)")
                 return
             }
             
             /* GUARD: Did we get a successful 2XX response? */
             guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
                 // displayError("Your request returned a status code other than 2xx!")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Your request returned a status code other than 2xx!")
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Your request returned a status code other than 2xx!")
                 return
             }
             
             /* GUARD: Was there any data returned? */
             guard let data = data else {
                 //displayError("No data was returned by the request!")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "No data was returned by the request!")
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "No data was returned by the request!")
                 return
             }
             
             // For debugging only
-            print("*** Here is the raw data ***")
-            print(data)
+            //print("*** Here is the raw data ***")
+            //print(data)
             
             // TODO: There should be a separate method for this
             // parse the data
@@ -179,13 +179,13 @@ class FlickrClient: NSObject {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
             } catch {
                 // displayError("Could not parse the data as JSON: '\(data)'")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Could not parse the data as JSON: '\(data)'")
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Could not parse the data as JSON: '\(data)'")
                 return
             }
             
             // For debugging only
-            print("*** Here is the parsed result ***")
-            print(parsedResult)
+            //print("*** Here is the parsed result ***")
+            //print(parsedResult)
             
             /* GUARD: Are the "photos" and "photo" keys in our result? */
             // Notes: 'photos' is a key in a dictionary; it's value is a dictionary.
@@ -193,22 +193,22 @@ class FlickrClient: NSObject {
             guard let photosDictionary = parsedResult[Constants.FlickrResponseKeys.Photos] as? [String:AnyObject],
                 photoArray = photosDictionary[Constants.FlickrResponseKeys.Photo] as? [[String:AnyObject]] else {
                     //displayError("Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
-                    completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
+                    completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "Cannot find keys '\(Constants.FlickrResponseKeys.Photos)' and '\(Constants.FlickrResponseKeys.Photo)' in \(parsedResult)")
                     return
             }
             
             // Prevent crash if no photos are returned
             if photoArray.count == 0 {
                 // displayError("No photos were returned")
-                completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "No photos were returned")
+                completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: nil, error: true, errorDesc: "No photos were returned")
                 return
             }
             
             
             // For debugging:
-            print("Here is the number of photos: \(photoArray.count)")
+            //print("Here is the number of photos: \(photoArray.count)")
             
-            completionHandlerForDisplayImageFromFlickrBySearch(imageDataArray: photoArray, error: false, errorDesc: nil)
+            completionHandlerForReturnImageArrayFromFlickrBySearch(imageDataArray: photoArray, error: false, errorDesc: nil)
         }
         
         task.resume()

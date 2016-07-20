@@ -22,6 +22,8 @@ class FlickrImageVC: UIViewController {
     
     var travelPhotos: [Photo] = []
     
+    var flickrPhotos: [UIImage] = []
+    
     
     // MARK: - Outlets
     
@@ -45,27 +47,28 @@ class FlickrImageVC: UIViewController {
         travelPhotos = imageService.getPhotoEntities()
         print("travelPhotos.count is \(travelPhotos.count)")
         
+        FlickrClient.sharedInstance().getUIImagesFromFlickrData(5) { (images, error, errorDesc) in
+            
+            if !error {
+                self.flickrPhotos.append(images!)
+                performUIUpdatesOnMain() {
+                    self.flickrCollectionView.reloadData()
+                }
+            } else {
+                print("Failed to get UIImage objects from flickr")
+            }
+        }
+                
         
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        
+        print("Here is the number of UIImages available: ")
+        print(flickrPhotos.count)
     }
     
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-     // Get the new view controller using segue.destinationViewController.
-     // Pass the selected object to the new view controller.
-     }
-     */
-    
-    // MARK: - Helpers
     
 }
 
@@ -82,7 +85,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
-        return travelPhotos.count
+        return flickrPhotos.count //travelPhotos.count
     }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
@@ -103,10 +106,12 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         cell.layer.borderColor = UIColor.grayColor().CGColor
         
         /* Use data persisted in the data store */
-        let cellPhotoEntity = travelPhotos[indexPath.row]
-        let cellImage = UIImage(data: cellPhotoEntity.image!)
+        /*
+         let cellPhotoEntity = travelPhotos[indexPath.row]
+         let cellImage = UIImage(data: cellPhotoEntity.image!)
+         cell.flickrCellImageView.image = cellImage */
         
-        cell.flickrCellImageView.image = cellImage
+        cell.flickrCellImageView.image = flickrPhotos[indexPath.row]
         
         
         return cell
