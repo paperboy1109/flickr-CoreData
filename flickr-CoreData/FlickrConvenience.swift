@@ -59,7 +59,7 @@ extension FlickrClient {
                         // let singleRandomPhotoDictionary1 = imageDictionaries[0] as [String:AnyObject]
                         
                         /* Pick photos randomly from those available and append them to the array */
-                        let randomPhotoIndices = self.uniquePhotoIndices(maxPhotos, minIndex: 0, maxIndex: UInt32(imageDictionaries.count))
+                        let randomPhotoIndices = self.uniquePhotoIndices(min(maxPhotos, imageDictionaries.count), minIndex: 0, maxIndex: UInt32(imageDictionaries.count))
                         
                         flickrImageArray = []
                         
