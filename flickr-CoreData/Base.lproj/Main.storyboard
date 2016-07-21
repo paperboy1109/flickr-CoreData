@@ -31,7 +31,7 @@
                                 </variation>
                             </imageView>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="7l2-mp-vEC">
-                                <rect key="frame" x="20" y="149" width="560" height="431"/>
+                                <rect key="frame" x="0.0" y="149" width="600" height="431"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="317" id="cBE-d5-xlU"/>
@@ -50,7 +50,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="132" height="132"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="iCX-LB-vk0">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="iCX-LB-vk0">
                                                     <rect key="frame" x="13" y="13" width="106" height="106"/>
                                                 </imageView>
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="UJM-Ii-5Ym">
@@ -91,8 +91,10 @@
                             <constraint firstItem="9nA-7G-TpY" firstAttribute="top" secondItem="Qad-kU-lMk" secondAttribute="topMargin" id="8Xs-td-OjJ"/>
                             <constraint firstItem="7l2-mp-vEC" firstAttribute="height" secondItem="9nA-7G-TpY" secondAttribute="height" multiplier="3:1" id="EvU-yH-1KM"/>
                             <constraint firstItem="7l2-mp-vEC" firstAttribute="top" secondItem="9nA-7G-TpY" secondAttribute="bottom" constant="5" id="KhS-Vz-ZGa"/>
+                            <constraint firstItem="7l2-mp-vEC" firstAttribute="leading" secondItem="Qad-kU-lMk" secondAttribute="leading" id="PQn-hS-sIR"/>
                             <constraint firstItem="9nA-7G-TpY" firstAttribute="top" secondItem="gGV-rX-L9K" secondAttribute="bottom" id="QLK-Lh-e9p"/>
                             <constraint firstItem="7l2-mp-vEC" firstAttribute="leading" secondItem="Qad-kU-lMk" secondAttribute="leadingMargin" id="cBd-48-5ZQ"/>
+                            <constraint firstAttribute="trailing" secondItem="7l2-mp-vEC" secondAttribute="trailing" id="hOQ-ir-aUw"/>
                             <constraint firstItem="XTu-aa-4jU" firstAttribute="top" secondItem="7l2-mp-vEC" secondAttribute="bottom" constant="20" id="sIe-9U-z1z"/>
                             <constraint firstAttribute="trailingMargin" secondItem="9nA-7G-TpY" secondAttribute="trailing" id="uz7-lc-Tta"/>
                             <constraint firstItem="7l2-mp-vEC" firstAttribute="top" secondItem="9nA-7G-TpY" secondAttribute="bottom" constant="5" id="xYJ-F9-t8V"/>
@@ -100,12 +102,15 @@
                         <variation key="default">
                             <mask key="constraints">
                                 <exclude reference="QLK-Lh-e9p"/>
+                                <exclude reference="3Oy-rc-5my"/>
                                 <exclude reference="KhS-Vz-ZGa"/>
+                                <exclude reference="cBd-48-5ZQ"/>
                             </mask>
                         </variation>
                     </view>
                     <connections>
                         <outlet property="flickrCollectionView" destination="7l2-mp-vEC" id="v92-51-rcV"/>
+                        <outlet property="flowLayout" destination="hjv-E3-upw" id="fE2-RR-vwk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="brY-tZ-rp3" userLabel="First Responder" sceneMemberID="firstResponder"/>

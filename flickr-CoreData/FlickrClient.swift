@@ -14,6 +14,41 @@ class FlickrClient: NSObject {
     
     var session = NSURLSession.sharedSession()
     
+    func returnImageFromFlickrByURL(urlString: String, completionHandlerForReturnImageFromFlickrByURL: (imageData: NSData?, error: Bool, errorDesc: String?) -> Void) {
+        
+        let url = NSURL(string: urlString)!
+        
+        let task = session.dataTaskWithURL(url) { (data, response, error) in
+            
+            /* GUARD: Was there an error? */
+            guard (error == nil) else {
+                print("There was an error with your request: \(error)")
+                completionHandlerForReturnImageFromFlickrByURL(imageData: nil, error: true, errorDesc: "There was an error with your request: \(error)")
+                return
+            }
+            
+            /* GUARD: Did we get a successful 2XX response? */
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                // displayError("Your request returned a status code other than 2xx!")
+                completionHandlerForReturnImageFromFlickrByURL(imageData: nil, error: true, errorDesc: "Your request returned a status code other than 2xx!")
+                return
+            }
+            
+            /* GUARD: Was there any data returned? */
+            guard let data = data else {
+                //displayError("No data was returned by the request!")
+                completionHandlerForReturnImageFromFlickrByURL(imageData: nil, error: true, errorDesc: "No data was returned by the request!")
+                return
+            }
+            
+            completionHandlerForReturnImageFromFlickrByURL(imageData: data, error: false, errorDesc: nil)
+            
+            
+        }
+        
+        task.resume()
+    }
+    
     // MARK: - Return images based on search
     
     func returnImageFromFlickrBySearch(methodParameters: [String:AnyObject], pageNumber: Int, completionHandlerForReturnImageFromFlickrBySearch: (imageData: NSData?, error: Bool, errorDesc: String?) -> Void) {

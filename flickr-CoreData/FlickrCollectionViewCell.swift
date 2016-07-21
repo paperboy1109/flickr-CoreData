@@ -13,4 +13,11 @@ class FlickrCollectionViewCell: UICollectionViewCell {
     @IBOutlet var flickrCellActivityIndicator: UIActivityIndicatorView!
     @IBOutlet var flickrCellImageView: UIImageView!
     
+    override func awakeFromNib() {
+        // Configure the cell
+        layer.borderWidth = 0.8
+        layer.cornerRadius = 5
+        layer.borderColor = UIColor.grayColor().CGColor
+    }
+    
 }

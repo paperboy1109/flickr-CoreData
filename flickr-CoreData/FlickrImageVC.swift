@@ -31,15 +31,22 @@ class FlickrImageVC: UIViewController {
     
     @IBOutlet var flickrCollectionView: UICollectionView!
     
+    @IBOutlet var flowLayout: UICollectionViewFlowLayout!
+    
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        /* Configure the collection view */
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
         
+
+        
         /* Check for persisted Photo entities */
+        
         managedObjectContext = coreDataStack.managedObjectContext
         imageService = ImageService(managedObjectContext: managedObjectContext)
         
@@ -66,21 +73,42 @@ class FlickrImageVC: UIViewController {
         
         
         // Get image data from flickr as url, name, id
-        FlickrClient.sharedInstance().getImageDataFromFlickr(9) {(urlString, photoName, photoID, error, errorDesc) in
-            print("closure")
-            print(urlString)
-            print(photoName)
-            print(photoID)
+        /*
+         FlickrClient.sharedInstance().getImageDataFromFlickr(9) {(urlString, photoName, photoID, error, errorDesc) in
+         print("closure")
+         print(urlString)
+         print(photoName)
+         print(photoID)
+         
+         if let newPhotoIDString = photoID {
+         if let newPhotoID = Int(newPhotoIDString) {
+         print("newPhotoID as Int: \(newPhotoID)")
+         }
+         }
+         
+         let newPhoto = NewPhoto(url: urlString, title: photoName, id: 1)
+         self.newTouristPhotos.append(newPhoto)
+         } */
+        
+        
+        
+        FlickrClient.sharedInstance().getNewPhotoArrayFromFlickr(18) { (newPhotoArray, error, errorDesc) in
             
-            if let newPhotoIDString = photoID {
-                if let newPhotoID = Int(newPhotoIDString) {
-                    print("newPhotoID as Int: \(newPhotoID)")
+            print("\n\n (getNewPhotoArrayFromFlickr) Here is newPhotoArray: ")
+            print(newPhotoArray)
+            print(newPhotoArray?.count)
+            
+            if !error {
+                self.newTouristPhotos = newPhotoArray!
+                
+                performUIUpdatesOnMain() {
+                    self.flickrCollectionView.reloadData()
                 }
             }
             
-            let newPhoto = NewPhoto(url: urlString, title: photoName, id: 1)
-            self.newTouristPhotos.append(newPhoto)            
         }
+        
+        
         
         
     }
@@ -88,14 +116,24 @@ class FlickrImageVC: UIViewController {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
+        let space: CGFloat = 0.0
+        let dimension = (view.frame.size.width - (2*space)) / 3.0
+        
+        flowLayout.minimumInteritemSpacing = 0.0
+        flowLayout.itemSize = CGSizeMake(dimension, dimension)
+        
+        
         print("Here is the number of UIImages available: ")
         print(flickrPhotos.count)
         
+        /*
         for item in flickrCollectionView.visibleCells() {
             let visibleCell = item as? FlickrCollectionViewCell
             visibleCell?.flickrCellActivityIndicator.hidden = false
             visibleCell?.flickrCellActivityIndicator.startAnimating()
-        }
+        } */
+        
+        
         
         
     }
@@ -120,13 +158,10 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
-        return max(flickrPhotos.count, 3 ) //travelPhotos.count
+        return newTouristPhotos.count //max(flickrPhotos.count, 3 ) //travelPhotos.count
     }
     
-    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        /* Hard-code the cell size */
-        return CGSizeMake(105, 105)
-    }
+
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
@@ -135,25 +170,54 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         // Placeholder image
         //cell.flickrCellImageView.image = UIImage(named: "flickr-logo.png")
         
-        // Configure the cell
-        cell.layer.borderWidth = 0.8
-        cell.layer.cornerRadius = 5
-        cell.layer.borderColor = UIColor.grayColor().CGColor
+
+        
         
         /* Use data persisted in the data store */
         /*
          let cellPhotoEntity = travelPhotos[indexPath.row]
          let cellImage = UIImage(data: cellPhotoEntity.image!)
          cell.flickrCellImageView.image = cellImage */
-        if flickrPhotos.count > 0 {
-            cell.flickrCellActivityIndicator.stopAnimating()
-            cell.flickrCellImageView.image = flickrPhotos[indexPath.row]
-        } else {
-            print("Still loading images")
+        
+        /*
+         if flickrPhotos.count > 0 {
+         cell.flickrCellActivityIndicator.stopAnimating()
+         cell.flickrCellImageView.image = flickrPhotos[indexPath.row]
+         } else {
+         print("Still loading images")
+         } */
+        
+        if newTouristPhotos.count > 0 {
+            cell.flickrCellActivityIndicator.startAnimating()
+            
+            FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
+                
+                if !error {
+                    if let cellImage = UIImage(data: imageData!) {
+                        performUIUpdatesOnMain(){
+                            cell.flickrCellActivityIndicator.stopAnimating()
+                            cell.flickrCellActivityIndicator.hidden = true
+                            cell.flickrCellImageView.image = cellImage
+                        }
+                    }
+                }
+            }
         }
         
         
         return cell
     }
+    
+}
+
+
+extension FlickrImageVC : UICollectionViewDelegateFlowLayout {
+    
+    // Use flowLayout
+    /*
+    func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
+        /* Hard-code the cell size */
+        return CGSizeMake(105, 105)
+    } */
     
 }

@@ -39,6 +39,76 @@ extension FlickrClient {
         }
     }
     
+    func getNewPhotoArrayFromFlickr(maxPhotos: Int, completionHandlerForGetNewPhotoArrayFromFlickr: (newPhotoArray: [NewPhoto]?, error: Bool, errorDesc: String?) -> Void) {
+        
+        print("\n\n\n ***** \n getNewPhotoArrayFromFlickr called")
+        
+        FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
+            
+            if !error {
+                
+                if let imageDictionaries = imageDataArray {
+                    
+                    print("\n*Here is the number of image dictionaries: ")
+                    print(imageDictionaries.count)
+                    
+                    if imageDictionaries.count > 0 {
+                        
+                        print(imageDictionaries[0])
+                        
+                        var newPhotoArrayToReturn: [NewPhoto] = []
+                        
+                        func sendError(responseKey: String, imageDictionary: [String: AnyObject]) {
+                            print("Cannot find key \(responseKey). For review: \n \(imageDictionary)")
+                            completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "At least one photo attribute was missing from the flickr data.")
+                        }
+                        
+                        /* Pick photos randomly from those available and append them to the array */
+                        let randomPhotoIndices = self.uniquePhotoIndices(min(maxPhotos, imageDictionaries.count), minIndex: 0, maxIndex: UInt32(imageDictionaries.count-1))
+                        
+                        print("Here are the random photo indices: \(randomPhotoIndices)")
+                        
+                        for index in 0...(randomPhotoIndices.count-1) {
+                            
+                            /* Defensive coding in case the image dictionaries to not match the expected format */
+                            
+                            guard let imageUrlString = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.MediumURL, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            guard let imageTitle = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.Title] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.Title, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            guard let imageID = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.PhotoID] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.PhotoID, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            /* Casting to an Int is not working */
+                            if let newPhotoID = Int(imageID) {
+                                let newPhoto = NewPhoto(url: imageUrlString, title: imageTitle, id: newPhotoID)
+                                newPhotoArrayToReturn.append(newPhoto)
+                            }
+                            
+                            
+                        }
+                        
+                        completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: newPhotoArrayToReturn, error: false, errorDesc: nil)
+                        
+                        
+                    } else {
+                        print("No images were returned")
+                        completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "No images were returned")
+                    }
+                    
+                }
+            }
+        }
+    }
+    
     func getImageDataFromFlickr(maxPhotos: Int, completionHandlerForGetImageDataFromFlickr: (urlString: String?, photoName: String?, photoID: String?, error: Bool, errorDesc: String?) -> Void) {
         
         print("\n\n\n ***** \n getImageDataFromFlickr called")
@@ -54,7 +124,7 @@ extension FlickrClient {
                     
                     print(imageDictionaries[0])
                     
-
+                    
                     
                     if imageDictionaries.count > 0 {
                         
