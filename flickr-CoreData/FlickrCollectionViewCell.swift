@@ -10,5 +10,7 @@ import UIKit
 
 class FlickrCollectionViewCell: UICollectionViewCell {
     
+    @IBOutlet var flickrCellActivityIndicator: UIActivityIndicatorView!
     @IBOutlet var flickrCellImageView: UIImageView!
+    
 }

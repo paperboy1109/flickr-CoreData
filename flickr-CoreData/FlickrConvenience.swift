@@ -39,10 +39,75 @@ extension FlickrClient {
         }
     }
     
-    // func getUIImagesFromFlickrData(maxPhotos: Int, completionHandlerForGetUIImagesFromFlickrData: (images: UIImage?, error: Bool, errorDesc: String?) -> Void) {
+    func getImageDataFromFlickr(maxPhotos: Int, completionHandlerForGetImageDataFromFlickr: (urlString: String?, photoName: String?, photoID: String?, error: Bool, errorDesc: String?) -> Void) {
+        
+        print("\n\n\n ***** \n getImageDataFromFlickr called")
+        
+        FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
+            
+            if !error {
+                
+                if let imageDictionaries = imageDataArray {
+                    
+                    print("\n*Here is the number of image dictionaries: ")
+                    print(imageDictionaries.count)
+                    
+                    print(imageDictionaries[0])
+                    
+
+                    
+                    if imageDictionaries.count > 0 {
+                        
+                        func sendError(responseKey: String, imageDictionary: [String: AnyObject]) {
+                            print("Cannot find key \(responseKey). For review: \n \(imageDictionary)")
+                            completionHandlerForGetImageDataFromFlickr(urlString: nil, photoName: nil, photoID: nil, error: true, errorDesc: "At least one photo attribute was missing from the flickr data.")
+                        }
+                        
+                        /* Pick photos randomly from those available and append them to the array */
+                        let randomPhotoIndices = self.uniquePhotoIndices(min(maxPhotos, imageDictionaries.count), minIndex: 0, maxIndex: UInt32(imageDictionaries.count))
+                        
+                        print("The title is: ")
+                        print(imageDictionaries[0]["title"])
+                        
+                        print("The id is: ")
+                        print(imageDictionaries[0]["id"])
+                        
+                        for index in 0...(randomPhotoIndices.count-1) {
+                            
+                            /* Defensive coding in case the image dictionaries to not match the expected format */
+                            
+                            guard let imageUrlString = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.MediumURL, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            guard let imageTitle = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.Title] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.Title, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            guard let imageID = imageDictionaries[randomPhotoIndices[index]][FlickrClient.Constants.FlickrResponseKeys.PhotoID] as? String else {
+                                sendError(FlickrClient.Constants.FlickrResponseKeys.PhotoID, imageDictionary: imageDictionaries[randomPhotoIndices[index]])
+                                return
+                            }
+                            
+                            completionHandlerForGetImageDataFromFlickr(urlString: imageUrlString, photoName: imageTitle, photoID: imageID, error: true, errorDesc: "At least one photo attribute was missing from the flickr data.")
+                        }
+                        
+                        
+                        
+                    } else {
+                        print("No images were returned")
+                        completionHandlerForGetImageDataFromFlickr(urlString: nil, photoName: nil, photoID: nil, error: true, errorDesc: "No images were returned")
+                    }
+                    
+                }
+            }
+        }
+    }
+    
     func getUIImagesFromFlickrData(maxPhotos: Int, completionHandlerForGetUIImagesFromFlickrData: (images: [UIImage?], error: Bool, errorDesc: String?) -> Void) {
         
-        // var flickrImages: UIImage? = nil
         var flickrImageArray: [UIImage?] = [nil]
         
         FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
@@ -55,8 +120,6 @@ extension FlickrClient {
                     print(imageDictionaries.count)
                     
                     if imageDictionaries.count > 0 {
-                        
-                        // let singleRandomPhotoDictionary1 = imageDictionaries[0] as [String:AnyObject]
                         
                         /* Pick photos randomly from those available and append them to the array */
                         let randomPhotoIndices = self.uniquePhotoIndices(min(maxPhotos, imageDictionaries.count), minIndex: 0, maxIndex: UInt32(imageDictionaries.count))
@@ -79,28 +142,6 @@ extension FlickrClient {
                         }
                         
                         completionHandlerForGetUIImagesFromFlickrData(images: flickrImageArray, error: false, errorDesc: nil)
-                        
-                        // Return a single image
-                        /*
-                        /* GUARD: Does our photo have a key for 'url_m'? */
-                        guard let imageUrlString = singleRandomPhotoDictionary1[FlickrClient.Constants.FlickrResponseKeys.MediumURL] as? String else {
-                            print("Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'.  For review: \n \(singleRandomPhotoDictionary1)")
-                            completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Cannot find key '\(FlickrClient.Constants.FlickrResponseKeys.MediumURL)'")
-                            return
-                        }
-                        
-                        let imageURL = NSURL(string: imageUrlString)
-                        
-                        if let newImageData = NSData(contentsOfURL: imageURL!) {
-                            
-                            flickrImages = UIImage(data: newImageData)!
-                            
-                            completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: false, errorDesc: nil)
-                            
-                            return
-                        }
-                        
-                        completionHandlerForGetUIImagesFromFlickrData(images: flickrImages, error: true, errorDesc: "Unable to get NSData from a flickr image URL") */
                         
                     } else {
                         print("No images were returned")

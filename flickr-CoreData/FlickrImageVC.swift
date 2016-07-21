@@ -24,6 +24,8 @@ class FlickrImageVC: UIViewController {
     
     var flickrPhotos: [UIImage?] = []
     
+    var newTouristPhotos: [NewPhoto] = []
+    
     
     // MARK: - Outlets
     
@@ -34,11 +36,10 @@ class FlickrImageVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Do any additional setup after loading the view.
-        
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
         
+        /* Check for persisted Photo entities */
         managedObjectContext = coreDataStack.managedObjectContext
         imageService = ImageService(managedObjectContext: managedObjectContext)
         
@@ -47,20 +48,40 @@ class FlickrImageVC: UIViewController {
         travelPhotos = imageService.getPhotoEntities()
         print("travelPhotos.count is \(travelPhotos.count)")
         
-        FlickrClient.sharedInstance().getUIImagesFromFlickrData(5) { (images, error, errorDesc) in
+        /* Download new images from flickr */
+        /*
+         FlickrClient.sharedInstance().getUIImagesFromFlickrData(5) { (images, error, errorDesc) in
+         
+         if !error {
+         // self.flickrPhotos.append(images!)
+         print("\n Here is images.count: \(images.count)")
+         self.flickrPhotos = images
+         performUIUpdatesOnMain() {
+         self.flickrCollectionView.reloadData()
+         }
+         } else {
+         print("Failed to get UIImage objects from flickr")
+         }
+         } */
+        
+        
+        // Get image data from flickr as url, name, id
+        FlickrClient.sharedInstance().getImageDataFromFlickr(9) {(urlString, photoName, photoID, error, errorDesc) in
+            print("closure")
+            print(urlString)
+            print(photoName)
+            print(photoID)
             
-            if !error {
-                // self.flickrPhotos.append(images!)
-                print("\n Here is images.count: \(images.count)")                
-                self.flickrPhotos = images
-                performUIUpdatesOnMain() {
-                    self.flickrCollectionView.reloadData()
+            if let newPhotoIDString = photoID {
+                if let newPhotoID = Int(newPhotoIDString) {
+                    print("newPhotoID as Int: \(newPhotoID)")
                 }
-            } else {
-                print("Failed to get UIImage objects from flickr")
             }
+            
+            let newPhoto = NewPhoto(url: urlString, title: photoName, id: 1)
+            self.newTouristPhotos.append(newPhoto)            
         }
-                
+        
         
     }
     
@@ -69,7 +90,19 @@ class FlickrImageVC: UIViewController {
         
         print("Here is the number of UIImages available: ")
         print(flickrPhotos.count)
+        
+        for item in flickrCollectionView.visibleCells() {
+            let visibleCell = item as? FlickrCollectionViewCell
+            visibleCell?.flickrCellActivityIndicator.hidden = false
+            visibleCell?.flickrCellActivityIndicator.startAnimating()
+        }
+        
+        
     }
+    
+    
+    // MARK: - Helpers
+    
     
     
 }
@@ -87,7 +120,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
-        return flickrPhotos.count //travelPhotos.count
+        return max(flickrPhotos.count, 3 ) //travelPhotos.count
     }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
@@ -112,8 +145,12 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
          let cellPhotoEntity = travelPhotos[indexPath.row]
          let cellImage = UIImage(data: cellPhotoEntity.image!)
          cell.flickrCellImageView.image = cellImage */
-        
-        cell.flickrCellImageView.image = flickrPhotos[indexPath.row]
+        if flickrPhotos.count > 0 {
+            cell.flickrCellActivityIndicator.stopAnimating()
+            cell.flickrCellImageView.image = flickrPhotos[indexPath.row]
+        } else {
+            print("Still loading images")
+        }
         
         
         return cell
