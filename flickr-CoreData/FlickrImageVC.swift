@@ -141,6 +141,14 @@ class FlickrImageVC: UIViewController {
     
     // MARK: - Helpers
     
+    func savePhoto(newPhotoData: NSData) {
+        
+        let newTouristPhoto = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+        newTouristPhoto.image = newPhotoData
+        
+        self.coreDataStack.saveContext()
+        
+    }
     
     
 }
@@ -198,6 +206,8 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                             cell.flickrCellActivityIndicator.stopAnimating()
                             cell.flickrCellActivityIndicator.hidden = true
                             cell.flickrCellImageView.image = cellImage
+                            
+                            self.savePhoto(imageData!)
                         }
                     }
                 }
