@@ -32,6 +32,8 @@ class FlickrImageVC: UIViewController {
     
     var travelPhotos: [Photo] = []
     
+    var travelPhotoEntitySet: Set<Photo> = []
+    
     // var flickrPhotos: [UIImage?] = []
     
     var newTouristPhotos: [NewPhoto] = []
@@ -153,8 +155,6 @@ class FlickrImageVC: UIViewController {
          } */
         
         
-        
-        
     }
     
     
@@ -162,12 +162,21 @@ class FlickrImageVC: UIViewController {
     
     func savePhoto(newPhotoData: NSData) {
         
-        let newTouristPhoto = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
-        newTouristPhoto.image = newPhotoData
+//        let newTouristPhotoEntity = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+//        newTouristPhotoEntity.image = newPhotoData
+//        
+//        self.coreDataStack.saveContext()
         
-        self.coreDataStack.saveContext()
-        
-        self.travelPhotos.append(newTouristPhoto)
+        // if travelPhotos.count < totalAvailableNewPhotos {
+        if travelPhotoEntitySet.count < totalAvailableNewPhotos {
+            let newTouristPhotoEntity = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+            newTouristPhotoEntity.image = newPhotoData
+            self.travelPhotos.append(newTouristPhotoEntity)
+            self.travelPhotoEntitySet.insert(newTouristPhotoEntity)
+            self.coreDataStack.saveContext()
+        } else {
+            locationHasPhotos = true
+        }
         
     }
     
@@ -229,8 +238,28 @@ class FlickrImageVC: UIViewController {
         
         flickrCollectionView.reloadData()
         
-        // TODO: Add completion handler
-        // loadNewImages()
+        if (targetFlickrPhotoPage + 1) <= maxFlickrPhotoPage {
+            targetFlickrPhotoPage = targetFlickrPhotoPage + 1
+        } else {
+            targetFlickrPhotoPage = 1 // the default page
+        }
+        
+        loadNewImages(targetFlickrPhotoPage) { (newPhotoArray, error, errorDesc) in
+            
+            print("(loadNewImages closure) \(self.maxFlickrPhotoPage)")
+            
+            if !error {
+                
+                self.totalAvailableNewPhotos = (newPhotoArray?.count)!
+                
+                self.newTouristPhotos.removeAll()
+                self.newTouristPhotos = newPhotoArray!
+                
+                performUIUpdatesOnMain() {
+                    self.flickrCollectionView.reloadData()
+                }
+            }
+        }
         
     }
     
@@ -249,6 +278,10 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
+        
+        print("The number of visible cells is : ")
+        print("\(flickrCollectionView.visibleCells().count)")
+        
         if locationHasPhotos {
             return travelPhotos.count
         } else {
@@ -263,6 +296,9 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        
+//        print("The number of visible cells is : ")
+//        print("\(flickrCollectionView.visibleCells().count)")
         
         let cell = flickrCollectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! FlickrCollectionViewCell
         
@@ -319,7 +355,10 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                 
                 FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
                     
+                    print("indexPath.row is \(indexPath.row)")
+                    
                     if !error {
+                        
                         if let cellImage = UIImage(data: imageData!) {
                             
                             performUIUpdatesOnMain(){
@@ -329,21 +368,22 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 self.displayedImagesCount += 1
                             }
                             
-                            self.savePhoto(imageData!) // photos will be saved to travelPhotos array
+                            self.savePhoto(imageData!) // photos will be saved to the data store and appended to travelPhotos array
                             
                             print("(cellForItemAtIndexPath) travelPhotos.count is \(self.travelPhotos.count)")
                             print("totalAvailableNewPhotos is \(self.totalAvailableNewPhotos)")
                             print("displayedImagesCount is \(self.displayedImagesCount)")
+                            print("self.travelPhotoEntitySet.count is \(self.travelPhotoEntitySet.count)")
                             
                             // TODO: Consider a better way of switching from loading photos from a url to loading from the data store
                             if self.travelPhotos.count >= self.totalAvailableNewPhotos {
                                 
                                 print("\n*travelPhotos >= newPhotos*")
                                 
-                                self.locationHasPhotos = true
-                                
                                 /* Sync the data store and the local array */
-                                self.travelPhotos = self.imageService.getPhotoEntities()
+                                // self.travelPhotos = self.imageService.getPhotoEntities()
+                                
+                                // self.locationHasPhotos = true
                                 
                             }
                         }
