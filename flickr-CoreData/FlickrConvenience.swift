@@ -15,6 +15,31 @@ extension FlickrClient {
     
     // MARK: - Helpers
     
+    func searchFlickrForImagesForPage(targetPageNumber: Int, completionHandlerForSearchFlickrForImagesForPage: (imageDataArray: [[String:AnyObject]]?, error: Bool, errorDesc: String?) -> Void) {
+        
+        // Set method parameters
+        let methodParameters: [String: String!] = [
+            FlickrClient.Constants.FlickrParameterKeys.Method: FlickrClient.Constants.FlickrParameterValues.SearchMethod,
+            FlickrClient.Constants.FlickrParameterKeys.APIKey: FlickrClient.Constants.FlickrParameterValues.APIKey,
+            FlickrClient.Constants.FlickrParameterKeys.SafeSearch: FlickrClient.Constants.FlickrParameterValues.UseSafeSearch,
+            FlickrClient.Constants.FlickrParameterKeys.Extras: FlickrClient.Constants.FlickrParameterValues.MediumURL,
+            FlickrClient.Constants.FlickrParameterKeys.Format: FlickrClient.Constants.FlickrParameterValues.ResponseFormat,
+            FlickrClient.Constants.FlickrParameterKeys.NoJSONCallback: FlickrClient.Constants.FlickrParameterValues.DisableJSONCallback,
+            FlickrClient.Constants.FlickrParameterKeys.PerPage: FlickrClient.Constants.FlickrParameterValues.MaxPerPage,
+            FlickrClient.Constants.FlickrParameterKeys.Page: "\(targetPageNumber)",
+            FlickrClient.Constants.FlickrParameterKeys.Text: "London, England"
+        ]
+        
+        FlickrClient.sharedInstance().returnImageArrayFromFlickr(methodParameters) { (imageDataArray, error, errorDesc) in
+            
+            if error == false {
+                completionHandlerForSearchFlickrForImagesForPage(imageDataArray: imageDataArray, error: false, errorDesc: nil)
+            } else {
+                completionHandlerForSearchFlickrForImagesForPage(imageDataArray: nil, error: true, errorDesc: errorDesc)
+            }
+        }
+    }
+    
     func searchFlickrForImages(completionHandlerForSearchFlickrForImages: (imageDataArray: [[String:AnyObject]]?, error: Bool, errorDesc: String?) -> Void) {
         
         // Set method parameters
@@ -39,11 +64,11 @@ extension FlickrClient {
         }
     }
     
-    func getNewPhotoArrayFromFlickr(maxPhotos: Int, completionHandlerForGetNewPhotoArrayFromFlickr: (newPhotoArray: [NewPhoto]?, error: Bool, errorDesc: String?) -> Void) {
+    func getRandomSubsetPhotoDataArrayFromFlickr(targetPage: Int, maxPhotos: Int, completionHandlerForGetRandomSubsetPhotoDataArrayFromFlickr: (newPhotoArray: [NewPhoto]?, error: Bool, errorDesc: String?) -> Void) {
         
-        print("\n\n\n ***** \n getNewPhotoArrayFromFlickr called")
+        print("\n\n\n ***** \n getRandomSubsetPhotoDataArrayFromFlickr called")
         
-        FlickrClient.sharedInstance().searchFlickrForImages() { (imageDataArray, error, errorDesc) in
+        FlickrClient.sharedInstance().searchFlickrForImagesForPage(targetPage) { (imageDataArray, error, errorDesc) in
             
             if !error {
                 
@@ -60,7 +85,7 @@ extension FlickrClient {
                         
                         func sendError(responseKey: String, imageDictionary: [String: AnyObject]) {
                             print("Cannot find key \(responseKey). For review: \n \(imageDictionary)")
-                            completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "At least one photo attribute was missing from the flickr data.")
+                            completionHandlerForGetRandomSubsetPhotoDataArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "At least one photo attribute was missing from the flickr data.")
                         }
                         
                         /* Pick photos randomly from those available and append them to the array */
@@ -96,12 +121,12 @@ extension FlickrClient {
                             
                         }
                         
-                        completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: newPhotoArrayToReturn, error: false, errorDesc: nil)
+                        completionHandlerForGetRandomSubsetPhotoDataArrayFromFlickr(newPhotoArray: newPhotoArrayToReturn, error: false, errorDesc: nil)
                         
                         
                     } else {
                         print("No images were returned")
-                        completionHandlerForGetNewPhotoArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "No images were returned")
+                        completionHandlerForGetRandomSubsetPhotoDataArrayFromFlickr(newPhotoArray: nil, error: true, errorDesc: "No images were returned")
                     }
                     
                 }

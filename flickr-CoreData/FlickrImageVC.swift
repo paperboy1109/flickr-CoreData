@@ -20,9 +20,13 @@ class FlickrImageVC: UIViewController {
     
     var imageService: ImageService!
     
+    var targetFlickrPhotoPage: Int!
+    
     let maxPhotos = 18
     
     var totalAvailableNewPhotos = 0
+    
+    var displayedImagesCount = 0
     
     var travelPhotos: [Photo] = []
     
@@ -46,6 +50,8 @@ class FlickrImageVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        targetFlickrPhotoPage = 1 // the default page
+        
         /* Configure the collection view */
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
@@ -62,6 +68,7 @@ class FlickrImageVC: UIViewController {
         
         if travelPhotos.count > 0 {
             locationHasPhotos = true
+            flickrCollectionView.reloadData()
         }
             
             /* Download new images from flickr */
@@ -101,10 +108,19 @@ class FlickrImageVC: UIViewController {
             
         else {
             
-            loadNewImages()
-            
-            
-            
+            loadNewImages(targetFlickrPhotoPage) { (newPhotoArray, error, errorDesc) in
+                
+                if !error {
+                    self.totalAvailableNewPhotos = (newPhotoArray?.count)!
+                    
+                    self.newTouristPhotos.removeAll()
+                    self.newTouristPhotos = newPhotoArray!
+                    
+                    performUIUpdatesOnMain() {
+                        self.flickrCollectionView.reloadData()
+                    }
+                }
+            }
         }
         
         
@@ -151,23 +167,31 @@ class FlickrImageVC: UIViewController {
         
     }
     
-    func loadNewImages() {
+    func loadNewImages(targetPage: Int, completionHandlerForReturnImageFromFlickrByURL: (newPhotoArray: [NewPhoto]?, error: Bool, errorDesc: String?) -> Void) {
         
-        FlickrClient.sharedInstance().getNewPhotoArrayFromFlickr(maxPhotos) { (newPhotoArray, error, errorDesc) in
+        FlickrClient.sharedInstance().getRandomSubsetPhotoDataArrayFromFlickr(targetFlickrPhotoPage, maxPhotos: maxPhotos) { (newPhotoArray, error, errorDesc) in
             
-            print("\n\n (getNewPhotoArrayFromFlickr) Here is newPhotoArray: ")
+            print("\n\n (getRandomSubsetPhotoDataArrayFromFlickr closure) Here is newPhotoArray: ")
             print(newPhotoArray)
             print(newPhotoArray?.count)
             
             if !error {
                 
-                self.totalAvailableNewPhotos = (newPhotoArray?.count)!
+                // TODO: Move this to the completion handler
+                //self.totalAvailableNewPhotos = (newPhotoArray?.count)!
                 
-                self.newTouristPhotos = newPhotoArray!
+                // TODO: Move this to the completion handler
+                // self.newTouristPhotos.removeAll()
+                // self.newTouristPhotos = newPhotoArray!
                 
-                performUIUpdatesOnMain() {
-                    self.flickrCollectionView.reloadData()
-                }
+                // TODO: Move this to the completion handler
+//                performUIUpdatesOnMain() {
+//                    self.flickrCollectionView.reloadData()
+//                }
+                
+                completionHandlerForReturnImageFromFlickrByURL(newPhotoArray: newPhotoArray, error: false, errorDesc: nil)
+            } else {
+                completionHandlerForReturnImageFromFlickrByURL(newPhotoArray: nil, error: true, errorDesc: "Unable to return new images")
             }
             
         }
@@ -186,15 +210,16 @@ class FlickrImageVC: UIViewController {
         
         locationHasPhotos = false
         
-        newTouristPhotos = []
+        newTouristPhotos.removeAll()
         
-        travelPhotos = []
+        travelPhotos.removeAll()
         
         totalAvailableNewPhotos = 0
         
         flickrCollectionView.reloadData()
         
-        loadNewImages()
+        // TODO: Add completion handler
+        // loadNewImages()
         
     }
     
@@ -216,7 +241,11 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         if locationHasPhotos {
             return travelPhotos.count
         } else {
-            return newTouristPhotos.count
+            if newTouristPhotos.isEmpty {
+                return 0
+            } else {
+                return newTouristPhotos.count
+            }
         }
     }
     
@@ -274,7 +303,8 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                 cell.flickrCellActivityIndicator.startAnimating()
             }
             
-            if newTouristPhotos.count > 0 {
+            // if newTouristPhotos.count > 0 {
+            if !newTouristPhotos.isEmpty {
                 
                 FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
                     
@@ -285,24 +315,24 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 cell.flickrCellActivityIndicator.stopAnimating()
                                 cell.flickrCellActivityIndicator.hidden = true
                                 cell.flickrCellImageView.image = cellImage
+                                self.displayedImagesCount += 1
                             }
                             
                             self.savePhoto(imageData!) // photos will be saved to travelPhotos array
                             
                             print("(cellForItemAtIndexPath) travelPhotos.count is \(self.travelPhotos.count)")
                             print("totalAvailableNewPhotos is \(self.totalAvailableNewPhotos)")
+                            print("displayedImagesCount is \(self.displayedImagesCount)")
                             
+                            // TODO: Consider a better way of switching from loading photos from a url to loading from the data store
                             if self.travelPhotos.count >= self.totalAvailableNewPhotos {
+                                
+                                print("\n*travelPhotos >= newPhotos*")
                                 
                                 self.locationHasPhotos = true
                                 
                                 /* Sync the data store and the local array */
                                 self.travelPhotos = self.imageService.getPhotoEntities()
-                                
-                                /*
-                                 performUIUpdatesOnMain() {
-                                 self.flickrCollectionView.reloadData()
-                                 }*/
                                 
                             }
                         }
