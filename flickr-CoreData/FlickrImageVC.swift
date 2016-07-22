@@ -22,6 +22,8 @@ class FlickrImageVC: UIViewController {
     
     var targetFlickrPhotoPage: Int!
     
+    var maxFlickrPhotoPage = 1
+    
     let maxPhotos = 18
     
     var totalAvailableNewPhotos = 0
@@ -110,6 +112,8 @@ class FlickrImageVC: UIViewController {
             
             loadNewImages(targetFlickrPhotoPage) { (newPhotoArray, error, errorDesc) in
                 
+                print("(loadNewImages closure) \(self.maxFlickrPhotoPage)")
+                
                 if !error {
                     self.totalAvailableNewPhotos = (newPhotoArray?.count)!
                     
@@ -169,11 +173,11 @@ class FlickrImageVC: UIViewController {
     
     func loadNewImages(targetPage: Int, completionHandlerForReturnImageFromFlickrByURL: (newPhotoArray: [NewPhoto]?, error: Bool, errorDesc: String?) -> Void) {
         
-        FlickrClient.sharedInstance().getRandomSubsetPhotoDataArrayFromFlickr(targetFlickrPhotoPage, maxPhotos: maxPhotos) { (newPhotoArray, error, errorDesc) in
+        FlickrClient.sharedInstance().getRandomSubsetPhotoDataArrayFromFlickr(targetFlickrPhotoPage, maxPhotos: maxPhotos) { (newPhotoArray, pageTotal, error, errorDesc) in
             
             print("\n\n (getRandomSubsetPhotoDataArrayFromFlickr closure) Here is newPhotoArray: ")
-            print(newPhotoArray)
-            print(newPhotoArray?.count)
+            //print(newPhotoArray)
+            //print(newPhotoArray?.count)
             
             if !error {
                 
@@ -185,9 +189,16 @@ class FlickrImageVC: UIViewController {
                 // self.newTouristPhotos = newPhotoArray!
                 
                 // TODO: Move this to the completion handler
-//                performUIUpdatesOnMain() {
-//                    self.flickrCollectionView.reloadData()
-//                }
+                //                performUIUpdatesOnMain() {
+                //                    self.flickrCollectionView.reloadData()
+                //                }
+                
+                print(pageTotal)
+                
+                if let newMaxFlickrPhotoPages = pageTotal {
+                    print(newMaxFlickrPhotoPages)
+                    self.maxFlickrPhotoPage = newMaxFlickrPhotoPages
+                }
                 
                 completionHandlerForReturnImageFromFlickrByURL(newPhotoArray: newPhotoArray, error: false, errorDesc: nil)
             } else {
