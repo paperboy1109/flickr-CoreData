@@ -25,12 +25,12 @@ public class ImageService {
         print("\n\n\nloadData called")
         
         // TODO: Access images in the data store
-        let request = NSFetchRequest(entityName: "Photo")
+        let fetchRequest = NSFetchRequest(entityName: "Photo")
         
         let results: [Photo]
         
         do {
-            results = try managedObjectContext.executeFetchRequest(request) as! [Photo]
+            results = try managedObjectContext.executeFetchRequest(fetchRequest) as! [Photo]
         }
         catch {
             fatalError("Error getting photos")
@@ -43,12 +43,12 @@ public class ImageService {
     
     func getPhotoEntities() -> [Photo] {
         
-        let request = NSFetchRequest(entityName: "Photo")
+        let fetchRequest = NSFetchRequest(entityName: "Photo")
         
         let results: [Photo]
         
         do {
-            results = try managedObjectContext.executeFetchRequest(request) as! [Photo]
+            results = try managedObjectContext.executeFetchRequest(fetchRequest) as! [Photo]
         }
         catch {
             fatalError("Error getting photos")
@@ -57,6 +57,24 @@ public class ImageService {
         return results
         
         
+    }
+    
+    func deleteAllPhotoEntities() {
+        
+        let fetchRequest = NSFetchRequest(entityName: "Photo")
+        
+        do {
+            let results = try managedObjectContext.executeFetchRequest(fetchRequest) as! [Photo]
+            for item in results {
+                managedObjectContext.deleteObject(item)
+            }
+            
+            let photosCount = managedObjectContext.countForFetchRequest(fetchRequest, error: nil)
+            print("Total photos in the data store after clean up: \(photosCount)")
+        }
+        catch {
+            fatalError("Error deleting persisted Photo entities")
+        }
     }
     
     

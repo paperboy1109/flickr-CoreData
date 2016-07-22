@@ -39,6 +39,7 @@ class FlickrImageVC: UIViewController {
     
     @IBOutlet var flowLayout: UICollectionViewFlowLayout!
     
+    @IBOutlet var newCollectionButton: UIButton!
     
     // MARK: - Lifecycle
     
@@ -167,6 +168,17 @@ class FlickrImageVC: UIViewController {
         
     }
     
+    // MARK: - Actions
+    
+    @IBAction func newCollectionTapped(sender: AnyObject) {
+        
+        // Delete Photo entities from the data store
+        
+        imageService.deleteAllPhotoEntities()
+        
+        self.coreDataStack.saveContext()
+        
+    }
     
 }
 
