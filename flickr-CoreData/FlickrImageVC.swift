@@ -26,7 +26,7 @@ class FlickrImageVC: UIViewController {
     
     var travelPhotos: [Photo] = []
     
-    var flickrPhotos: [UIImage?] = []
+    // var flickrPhotos: [UIImage?] = []
     
     var newTouristPhotos: [NewPhoto] = []
     
@@ -49,8 +49,6 @@ class FlickrImageVC: UIViewController {
         /* Configure the collection view */
         flickrCollectionView.delegate = self
         flickrCollectionView.dataSource = self
-        
-        
         
         /* Check for persisted Photo entities */
         
@@ -103,24 +101,9 @@ class FlickrImageVC: UIViewController {
             
         else {
             
-            FlickrClient.sharedInstance().getNewPhotoArrayFromFlickr(maxPhotos) { (newPhotoArray, error, errorDesc) in
-                
-                print("\n\n (getNewPhotoArrayFromFlickr) Here is newPhotoArray: ")
-                print(newPhotoArray)
-                print(newPhotoArray?.count)
-                
-                if !error {
-                    
-                    self.totalAvailableNewPhotos = (newPhotoArray?.count)!
-                    
-                    self.newTouristPhotos = newPhotoArray!
-                    
-                    performUIUpdatesOnMain() {
-                        self.flickrCollectionView.reloadData()
-                    }
-                }
-                
-            }
+            loadNewImages()
+            
+            
             
         }
         
@@ -139,8 +122,8 @@ class FlickrImageVC: UIViewController {
         flowLayout.itemSize = CGSizeMake(dimension, dimension)
         
         
-        print("Here is the number of UIImages available: ")
-        print(flickrPhotos.count)
+        //print("Here is the number of UIImages available: ")
+        //print(flickrPhotos.count)
         
         /*
          for item in flickrCollectionView.visibleCells() {
@@ -168,15 +151,50 @@ class FlickrImageVC: UIViewController {
         
     }
     
+    func loadNewImages() {
+        
+        FlickrClient.sharedInstance().getNewPhotoArrayFromFlickr(maxPhotos) { (newPhotoArray, error, errorDesc) in
+            
+            print("\n\n (getNewPhotoArrayFromFlickr) Here is newPhotoArray: ")
+            print(newPhotoArray)
+            print(newPhotoArray?.count)
+            
+            if !error {
+                
+                self.totalAvailableNewPhotos = (newPhotoArray?.count)!
+                
+                self.newTouristPhotos = newPhotoArray!
+                
+                performUIUpdatesOnMain() {
+                    self.flickrCollectionView.reloadData()
+                }
+            }
+            
+        }
+        
+    }
+    
     // MARK: - Actions
     
     @IBAction func newCollectionTapped(sender: AnyObject) {
         
+        newCollectionButton.enabled = false
+        
         // Delete Photo entities from the data store
-        
         imageService.deleteAllPhotoEntities()
-        
         self.coreDataStack.saveContext()
+        
+        locationHasPhotos = false
+        
+        newTouristPhotos = []
+        
+        travelPhotos = []
+        
+        totalAvailableNewPhotos = 0
+        
+        flickrCollectionView.reloadData()
+        
+        loadNewImages()
         
     }
     
@@ -249,19 +267,24 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
             }
             
         } else {
+            
             performUIUpdatesOnMain() {
                 cell.flickrCellActivityIndicator.hidden = false
                 cell.flickrCellActivityIndicator.startAnimating()
             }
             
-            FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
+            if newTouristPhotos.count > 0 {
                 
-                if !error {
-                    if let cellImage = UIImage(data: imageData!) {
-                        performUIUpdatesOnMain(){
-                            cell.flickrCellActivityIndicator.stopAnimating()
-                            cell.flickrCellActivityIndicator.hidden = true
-                            cell.flickrCellImageView.image = cellImage
+                FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
+                    
+                    if !error {
+                        if let cellImage = UIImage(data: imageData!) {
+                            
+                            performUIUpdatesOnMain(){
+                                cell.flickrCellActivityIndicator.stopAnimating()
+                                cell.flickrCellActivityIndicator.hidden = true
+                                cell.flickrCellImageView.image = cellImage
+                            }
                             
                             self.savePhoto(imageData!)
                             
@@ -274,7 +297,11 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 
                                 /* Sync the data store and the local array */
                                 self.travelPhotos = self.imageService.getPhotoEntities()
-
+                                /*
+                                performUIUpdatesOnMain() {
+                                    self.flickrCollectionView.reloadData()
+                                }*/
+                                
                             }
                         }
                     }
