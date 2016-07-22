@@ -260,6 +260,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         if locationHasPhotos {
             
             let cellImage = UIImage(data: self.travelPhotos[indexPath.row].image!)
+            
             performUIUpdatesOnMain() {
                 cell.flickrCellActivityIndicator.stopAnimating()
                 cell.flickrCellActivityIndicator.hidden = true
@@ -286,7 +287,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 cell.flickrCellImageView.image = cellImage
                             }
                             
-                            self.savePhoto(imageData!)
+                            self.savePhoto(imageData!) // photos will be saved to travelPhotos array
                             
                             print("(cellForItemAtIndexPath) travelPhotos.count is \(self.travelPhotos.count)")
                             print("totalAvailableNewPhotos is \(self.totalAvailableNewPhotos)")
@@ -297,10 +298,11 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 
                                 /* Sync the data store and the local array */
                                 self.travelPhotos = self.imageService.getPhotoEntities()
+                                
                                 /*
-                                performUIUpdatesOnMain() {
-                                    self.flickrCollectionView.reloadData()
-                                }*/
+                                 performUIUpdatesOnMain() {
+                                 self.flickrCollectionView.reloadData()
+                                 }*/
                                 
                             }
                         }
