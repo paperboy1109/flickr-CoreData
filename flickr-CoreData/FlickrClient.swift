@@ -220,7 +220,8 @@ class FlickrClient: NSObject {
             
             // For debugging only
             print("*** Here is the parsed result ***")
-            print(parsedResult)
+            print("muted")
+            // print(parsedResult)
             
             /* GUARD: Are the "photos" and "photo" keys in our result? */
             // Notes: 'photos' is a key in a dictionary; it's value is a dictionary.

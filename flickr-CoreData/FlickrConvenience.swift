@@ -77,11 +77,12 @@ extension FlickrClient {
                     print("\n*Here is the number of image dictionaries: ")
                     print(imageDictionaries.count)
                     print("Here is the parsed data:")
-                    print(imageDictionaries)
+                    print("muted")
+                    // print(imageDictionaries)
                     
                     if imageDictionaries.count > 0 {
                         
-                        print(imageDictionaries[0])
+                        // print(imageDictionaries[0])
                         
                         var newPhotoArrayToReturn: [NewPhoto] = []
                         

@@ -30,9 +30,11 @@ class FlickrImageVC: UIViewController {
     
     var displayedImagesCount = 0
     
-    var travelPhotos: [Photo] = []
+    var persistedTravelPhotos: [Photo] = []
     
-    var travelPhotoEntitySet: Set<Photo> = []
+    var travelPhotoEntitySet: Set<Photo> = [] // deprecated
+    
+    var setOfPhotosToSave: Set<NSData> = []
     
     // var flickrPhotos: [UIImage?] = []
     
@@ -62,15 +64,15 @@ class FlickrImageVC: UIViewController {
         
         /* Check for persisted Photo entities */
         
-        managedObjectContext = coreDataStack.managedObjectContext
+        // managedObjectContext = coreDataStack.managedObjectContext
         imageService = ImageService(managedObjectContext: managedObjectContext)
         
         imageService.loadData()
         
-        travelPhotos = imageService.getPhotoEntities()
-        print("travelPhotos.count is \(travelPhotos.count)")
+        persistedTravelPhotos = imageService.getPhotoEntities()
+        print("persistedTravelPhotos.count is \(persistedTravelPhotos.count)")
         
-        if travelPhotos.count > 0 {
+        if persistedTravelPhotos.count > 0 {
             locationHasPhotos = true
             flickrCollectionView.reloadData()
         }
@@ -114,7 +116,7 @@ class FlickrImageVC: UIViewController {
             
             loadNewImages(targetFlickrPhotoPage) { (newPhotoArray, error, errorDesc) in
                 
-                print("(loadNewImages closure) \(self.maxFlickrPhotoPage)")
+                print("(loadNewImages closure) Here is the maximum page number for the flickr data: \(self.maxFlickrPhotoPage)")
                 
                 if !error {
                     self.totalAvailableNewPhotos = (newPhotoArray?.count)!
@@ -162,21 +164,42 @@ class FlickrImageVC: UIViewController {
     
     func savePhoto(newPhotoData: NSData) {
         
-//        let newTouristPhotoEntity = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
-//        newTouristPhotoEntity.image = newPhotoData
-//        
-//        self.coreDataStack.saveContext()
+        //        let newTouristPhotoEntity = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+        //        newTouristPhotoEntity.image = newPhotoData
+        //
+        //        self.coreDataStack.saveContext()
         
-        // if travelPhotos.count < totalAvailableNewPhotos {
+        // if persistedTravelPhotos.count < totalAvailableNewPhotos {
+        
+        // Duplicates will still be saved to the data store!
         if travelPhotoEntitySet.count < totalAvailableNewPhotos {
             let newTouristPhotoEntity = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
             newTouristPhotoEntity.image = newPhotoData
-            self.travelPhotos.append(newTouristPhotoEntity)
-            self.travelPhotoEntitySet.insert(newTouristPhotoEntity)
+            self.persistedTravelPhotos.append(newTouristPhotoEntity)
             self.coreDataStack.saveContext()
         } else {
             locationHasPhotos = true
         }
+        
+    }
+    
+    func savePhotosToDataStore(newPhotoDataSet: Set<NSData>) {
+        
+        for item in newPhotoDataSet {
+            let photoEntityToSave = NSEntityDescription.insertNewObjectForEntityForName("Photo", inManagedObjectContext: self.coreDataStack.managedObjectContext) as! Photo
+            photoEntityToSave.image = item
+            // self.coreDataStack.saveContext()
+        }
+        
+        self.coreDataStack.saveContext()
+    }
+    
+    func resetFlickrDataObjects() {
+        
+        newTouristPhotos.removeAll()
+        totalAvailableNewPhotos = 0
+        
+        setOfPhotosToSave.removeAll()
         
     }
     
@@ -232,7 +255,7 @@ class FlickrImageVC: UIViewController {
         
         newTouristPhotos.removeAll()
         
-        travelPhotos.removeAll()
+        persistedTravelPhotos.removeAll()
         
         totalAvailableNewPhotos = 0
         
@@ -257,6 +280,7 @@ class FlickrImageVC: UIViewController {
                 
                 performUIUpdatesOnMain() {
                     self.flickrCollectionView.reloadData()
+                    self.newCollectionButton.enabled = true
                 }
             }
         }
@@ -279,11 +303,11 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
         
-        print("The number of visible cells is : ")
+        print("(numberOfItemsInSection)The number of visible cells is : ")
         print("\(flickrCollectionView.visibleCells().count)")
         
         if locationHasPhotos {
-            return travelPhotos.count
+            return persistedTravelPhotos.count
         } else {
             if newTouristPhotos.isEmpty {
                 return 0
@@ -297,8 +321,8 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
-//        print("The number of visible cells is : ")
-//        print("\(flickrCollectionView.visibleCells().count)")
+        //        print("The number of visible cells is : ")
+        //        print("\(flickrCollectionView.visibleCells().count)")
         
         let cell = flickrCollectionView.dequeueReusableCellWithReuseIdentifier(reuseIdentifier, forIndexPath: indexPath) as! FlickrCollectionViewCell
         
@@ -310,7 +334,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         
         /* Use data persisted in the data store */
         /*
-         let cellPhotoEntity = travelPhotos[indexPath.row]
+         let cellPhotoEntity = persistedTravelPhotos[indexPath.row]
          let cellImage = UIImage(data: cellPhotoEntity.image!)
          cell.flickrCellImageView.image = cellImage */
         
@@ -335,7 +359,11 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         
         if locationHasPhotos {
             
-            let cellImage = UIImage(data: self.travelPhotos[indexPath.row].image!)
+            print("\n Cell image is from the data store ")
+            print("indexPath.row is \(indexPath.row)")
+            print("persistedTravelPhotos.count is \(self.persistedTravelPhotos.count)")
+            
+            let cellImage = UIImage(data: self.persistedTravelPhotos[indexPath.row].image!)
             
             performUIUpdatesOnMain() {
                 cell.flickrCellActivityIndicator.stopAnimating()
@@ -355,6 +383,7 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                 
                 FlickrClient.sharedInstance().returnImageFromFlickrByURL(newTouristPhotos[indexPath.row].url!) { (imageData, error, errorDesc) in
                     
+                    print("\n Cell image is from flickr ")
                     print("indexPath.row is \(indexPath.row)")
                     
                     if !error {
@@ -368,24 +397,45 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
                                 self.displayedImagesCount += 1
                             }
                             
-                            self.savePhoto(imageData!) // photos will be saved to the data store and appended to travelPhotos array
+                            /* Save images as Photo entites, one-by-one */ // DEPRECATED?
+                            // self.savePhoto(imageData!) // photos will be saved to the data store and appended to persistedTravelPhotos array
                             
-                            print("(cellForItemAtIndexPath) travelPhotos.count is \(self.travelPhotos.count)")
+                            // If this is a photo that has not been displayed before, add it to the set of items to save
+                            self.setOfPhotosToSave.insert(imageData!)
+                            
+                            // For debugging:
+                            print("(cellForItemAtIndexPath) persistedTravelPhotos.count is \(self.persistedTravelPhotos.count)")
                             print("totalAvailableNewPhotos is \(self.totalAvailableNewPhotos)")
                             print("displayedImagesCount is \(self.displayedImagesCount)")
-                            print("self.travelPhotoEntitySet.count is \(self.travelPhotoEntitySet.count)")
+                            // print("travelPhotoEntitySet.count is \(self.travelPhotoEntitySet.count)")
+                            print("setOfPhotosToSave.count is \(self.setOfPhotosToSave.count)")
                             
                             // TODO: Consider a better way of switching from loading photos from a url to loading from the data store
-                            if self.travelPhotos.count >= self.totalAvailableNewPhotos {
+                            if self.persistedTravelPhotos.count >= self.totalAvailableNewPhotos {
                                 
-                                print("\n*travelPhotos >= newPhotos*")
+                                print("\n*persistedTravelPhotos >= newPhotos*")
                                 
                                 /* Sync the data store and the local array */
-                                // self.travelPhotos = self.imageService.getPhotoEntities()
+                                // self.persistedTravelPhotos = self.imageService.getPhotoEntities()
                                 
                                 // self.locationHasPhotos = true
                                 
                             }
+                            
+                            
+                            /* Once totalAvailableNewPhotos matches the number of images in the set of unique images, save them to the data store */
+                            if self.setOfPhotosToSave.count >= self.totalAvailableNewPhotos {
+                                
+                                print("\nSaving new data to the data store ... ")
+                                self.savePhotosToDataStore(self.setOfPhotosToSave)
+                                
+                                self.persistedTravelPhotos.removeAll()
+                                self.persistedTravelPhotos = self.imageService.getPhotoEntities()
+                                self.locationHasPhotos = true
+                                
+                                self.flickrCollectionView.reloadData()
+                            }
+                            
                         }
                     }
                 }
