@@ -317,6 +317,12 @@ extension FlickrImageVC: UICollectionViewDelegate, UICollectionViewDataSource {
         }
     }
     
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        
+        print("The cell at index path \(indexPath) was tapped ")
+
+    }
+    
     
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
